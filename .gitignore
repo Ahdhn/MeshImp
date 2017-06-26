@@ -23,3 +23,8 @@
 *.so
 *.dylib
 *.dll
+*.vcxproj
+*.filters
+*.cmake
+*.sln
+src/build
