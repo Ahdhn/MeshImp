@@ -60,7 +60,7 @@ void PrintHelpMessage()
 	fprintf(stdout, "************************************USE MESSAGE**********************************");
 	fprintf(stdout, "\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 	fprintf(stdout, "Command Line Syntax is: \n\n");
-	fprintf(stdout, "meshimp -APP [-tar -sam -smooth -dih -ring -del -minang -maxang \n");
+	fprintf(stdout, "mesh_imp.exe -APP [-tar -sam -smooth -dih -ring -del -minang -maxang \n");
 	fprintf(stdout, "-minedge - maxedge] INPUT.obj\n");	
 	fprintf(stdout, "\n-APP could be `-sim' for Mesh Simplification or `-obt' for Non-obtuse \n");
 	fprintf(stdout, "Retriangulation.\n");
