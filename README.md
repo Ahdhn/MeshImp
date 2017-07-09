@@ -6,9 +6,8 @@ The Eurographics Symposium on Geometry Processing (SGP) 2017.
 # Description:
 
 The code includes the implementation for curved surface meshes. This includes the following applications:
-1) Non-obtuse retriangulation 
-
-Example:
+1) _Non-obtuse retriangulation_:
+   Eliminating obtuse triangles from input mesh while preserving the minimum angle bound, smoothness, and Delaunay property. 
 
 <img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/gargoyle/input.png" height="435" width="435"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/NonObtuse/gargoyle/output.png" height="435" width="435">
 
@@ -17,9 +16,8 @@ Example:
 ```
 
 
-2) Mesh Simplification 
-
-Example:
+2) _Mesh Simplification_:
+   Achieving Level of Detail while preserving the angle bound, and triangle quality.
 
 <img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/cvt/davidhead/input.png" height="215" width="215"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/DelaunaySifting/cvt/davidhead/output.png" height="215" width="215"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/MeshSimplification/cvt/davidhead/level_1.png" height="215" width="215"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/MeshSimplification/cvt/davidhead/level_2.png" height="215" width="215">
 
@@ -28,9 +26,8 @@ Example:
 ```
 
 
-3) Delauany Sifting
-
-Example:
+3) _Delauany Sifting_:
+   Reducing the number of Steiner points while preserving angle bound, triangle quality, smoothness, and Delaunay property. 
 
 <img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/dr/bimba/input.png" height="435" width="435"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/DelaunaySifting/dr/bimba/output.png" height="435" width="435">
 
@@ -77,10 +74,10 @@ mesh_imp.exe -APP [-tar -sam -smooth -dih -ring -del -minang -maxang] INPUT.obj
 
    -sam      The number followed represents the number of successive successful
              darts before termination.
-			 During the sampling process, we can sample more than one successful
-			 sample and pick the best one. The best one can have different objective.
-			 In the current implementation, the `best' here is the one with maximum.
-			 minimum apex angle across different algorihtms.
+	     During the sampling process, we can sample more than one successful
+	     sample and pick the best one. The best one can have different objective.
+	     In the current implementation, the `best' here is the one with maximum.
+	     minimum apex angle across different algorihtms.
              The default is 10 samples.
 			 
    -ring     The number followed represents the number of rings (layers)
