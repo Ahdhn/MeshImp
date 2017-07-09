@@ -35,7 +35,7 @@ The code includes the implementation for curved surface meshes. This includes th
 		      Input         				     	      Output
 ```
 
-The results as presented in the paper in Table 2, Table 3, Table 5 are included as well under `/data`. 
+The results as presented in the paper in Table 2, Table 3, Table 5 can be found under `/data`. 
 
 
 
@@ -125,3 +125,7 @@ mesh_imp.exe -sim -sam10 -minang -maxang INPUT.obj
 # Reporting problems:
 
 To report bugs or compilation issue, please file an issue [here](https://github.com/Ahdhn/MeshImp/issues).
+
+# Acknowledgement:
+
+The project was funded by Sandia National Laboratories, Albuquerque, NM. 
