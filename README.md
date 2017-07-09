@@ -20,20 +20,22 @@ Example:
 2) Mesh Simplification 
 
 Example:
-<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/cvt/davidhead/input.png" height="100" width="100"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/MeshSimplification/cvt/davidhead/output.png" height="100" width="100">
+
+<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/cvt/davidhead/input.png" height="215" width="215"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/DelaunaySifting/cvt/davidhead/output.png" height="215" width="215"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/MeshSimplification/cvt/davidhead/level_1.png" height="215" width="215"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/MeshSimplification/cvt/davidhead/level_2.png" height="215" width="215">
 
 ```
-		Input         					   Output
+	30K triangles                20K triangles                12K triangles                  1.5K triangles
 ```
 
 
 3) Delauany Sifting
 
 Example:
-<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/dr/bimba/input.png" height="100" width="100"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/DelaunaySifting/dr/bimba/output.png" height="100" width="100">
+
+<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/dr/bimba/input.png" height="435" width="435"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/DelaunaySifting/dr/bimba/output.png" height="435" width="435">
 
 ```
-		Input         					   Output
+		      Input         				     	      Output
 ```
 
 The results as presented in the paper in Table 2, Table 3, Table 5 are included as well under `/data`. 
