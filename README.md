@@ -9,8 +9,8 @@ The code includes the implementation for curved surface meshes. This includes th
 1) Non-obtuse retriangulation 
 
 Example:
-![Input](https://github.com/Ahdhn/MeshImp/blob/master/data/input/gargoyle/input.png)
-![Output](https://github.com/Ahdhn/MeshImp/blob/master/data/NonObtuse/gargoyle/output.png)
+
+<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/gargoyle/input.png" height="400" width="400">        <img src="https://github.com/Ahdhn/MeshImp/blob/master/data/NonObtuse/gargoyle/output.png" height="400" width="400">
 
 2) Mesh Simplification 
 
