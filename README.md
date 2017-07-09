@@ -10,20 +10,31 @@ The code includes the implementation for curved surface meshes. This includes th
 
 Example:
 
-<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/gargoyle/input.png" height="400" width="400">        <img src="https://github.com/Ahdhn/MeshImp/blob/master/data/NonObtuse/gargoyle/output.png" height="400" width="400">
+<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/gargoyle/input.png" height="435" width="435"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/NonObtuse/gargoyle/output.png" height="435" width="435">
+
+```
+	Input (Obtuse triangles in red)        					   Output
+```
+
 
 2) Mesh Simplification 
 
 Example:
-![Input](MeshImp/data/input/cvt/davidhead/input.png)
-![Output](MeshImp/data/MeshSimplification/cvt/davidhead/output.png)
+<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/cvt/davidhead/input.png" height="100" width="100"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/MeshSimplification/cvt/davidhead/output.png" height="100" width="100">
+
+```
+		Input         					   Output
+```
+
 
 3) Delauany Sifting
 
 Example:
-![Input](MeshImp/data/input/dr/kiss/input.png)
-![Output](MeshImp/data/DelaunaySifting/dr/kiss/output.png)
+<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/dr/bimba/input.png" height="100" width="100"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/DelaunaySifting/dr/bimba/output.png" height="100" width="100">
 
+```
+		Input         					   Output
+```
 
 The results as presented in the paper in Table 2, Table 3, Table 5 are included as well under `/data`. 
 
