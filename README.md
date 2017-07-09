@@ -1,16 +1,33 @@
 # Mesh Improvement via Sampling:
 
-Implementation and results of "A Constrained Resampling Strategy for Mesh Improvement" to appear in Proceedings of 
+Implementation and results of "A Constrained Resampling Strategy for Mesh Improvement", Proceedings of 
 The Eurographics Symposium on Geometry Processing (SGP) 2017.
 
 # Description:
 
 The code includes the implementation for curved surface meshes. This includes the following applications:
-- Non-obtuse retriangulation 
-- Mesh Simplification 
-- Delauany Sifting
+1) Non-obtuse retriangulation 
+
+Example:
+![Input](MeshImp/data/input/gargoyle/input.png)
+![Output](MeshImp/data/NonObtuse/gargoyle/output.png)
+
+2) Mesh Simplification 
+
+Example:
+![Input](MeshImp/data/input/cvt/davidhead/input.png)
+![Output](MeshImp/data/MeshSimplification/cvt/davidhead/output.png)
+
+3) Delauany Sifting
+
+Example:
+![Input](MeshImp/data/input/dr/kiss/input.png)
+![Output](MeshImp/data/DelaunaySifting/dr/kiss/output.png)
+
 
 The results as presented in the paper in Table 2, Table 3, Table 5 are included as well under `/data`. 
+
+
 
 
 # Installation:
@@ -38,16 +55,21 @@ mesh_imp.exe -APP [-tar -sam -smooth -dih -ring -del -minang -maxang] INPUT.obj
              respecting the specified mesh quality.
              
    -tar      The number followed represents the target number of samples desired
-             of the simplified in the output mesh. If this number is not set,
+             in the simplified output mesh. If this number is not set, 
              The code will attempt to reduce the samples count as much as possible.
 
    -obt      Invokes the non-obtuse retriangulation algorithm on the input
-             mesh where we attempt to eliminate the obtuse triangles from
+             mesh where we attempt to eliminate the obtuse triangles from 
              the input mesh.
 
-   -sam      The number followed represents the number of successful samples.
+   -sam      The number followed represents the number of successive successful
+             darts before termination.
+			 During the sampling process, we can sample more than one successful
+			 sample and pick the best one. The best one can have different objective.
+			 In the current implementation, the `best' here is the one with maximum.
+			 minimum apex angle across different algorihtms.
              The default is 10 samples.
-
+			 
    -ring     The number followed represents the number of rings (layers)
              taken as background grid for sampling. The default is 3 rings.
 
@@ -56,18 +78,19 @@ mesh_imp.exe -APP [-tar -sam -smooth -dih -ring -del -minang -maxang] INPUT.obj
 
    -minang   The number followed represents the minimum angle preserved.
              The default is set to the minimum angle of the input mesh.
+			 
    -maxang   The number followed represents the maximum angle preserved.
-             The default is set to the maximum angle of the input mesh.
-
-   -minedge  The number followed represents the minimum edge preserved.
-   -maxedge  The number followed represents the maximum edge preserved.
+             The default is set to the maximum angle of the input mesh.   
 
    -smooth   If set, the smoothness will be preserved.
              The default is false.
+			 
    -dih      The maximum dihedral angle to which the smoothness will be
              preserved.
+			 
    -v        Display various statistics throughout the execution.
-   -h        Display the use message.
+   
+   -h        Display the use message, and quit.
   ```
 
 ### Examples

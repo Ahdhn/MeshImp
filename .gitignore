@@ -10,11 +10,8 @@
 *.slo
 *.lo
 *.o
-*.obj
 *.gch
 *.pch
-*.exe
-*.out
 *.app
 *.lai
 *.la

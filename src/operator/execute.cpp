@@ -450,7 +450,7 @@ void MeshImp::Simp(int targetNumSamples, int samplingBudget, int numSurfaceLayer
 
 			DisplayStat(numVert_imp, Vert_imp,0);
 
-			fprintf(stdout, "\n Reducation Ratio= %d %", 100.0*(double(numVert_org - numVert_imp) / double(numVert_org)));
+			fprintf(stdout, "\n Reducation Ratio= %f %", 100.0*(double(numVert_org - numVert_imp) / double(numVert_org)));
 			
 			fprintf(stdout, "\n itter: %i", itter);			
 		}			

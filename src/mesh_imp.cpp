@@ -60,7 +60,7 @@ void PrintHelpMessage()
 	fprintf(stdout, "************************************USE MESSAGE**********************************");
 	fprintf(stdout, "\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 	fprintf(stdout, "Command Line Syntax is: \n\n");
-	fprintf(stdout, "mesh_imp.exe -APP [-tar -sam -smooth -dih -ring -del -minang -maxang \n");
+	fprintf(stdout, "meshimp -APP [-tar -sam -smooth -dih -ring -del -minang -maxang \n");
 	fprintf(stdout, "-minedge - maxedge] INPUT.obj\n");	
 	fprintf(stdout, "\n-APP could be `-sim' for Mesh Simplification or `-obt' for Non-obtuse \n");
 	fprintf(stdout, "Retriangulation.\n");
@@ -73,36 +73,41 @@ void PrintHelpMessage()
 	fprintf(stdout, "             respecting the specified mesh quality.\n");
 
 	fprintf(stdout, "   -tar      The number followed represents the target number of samples desired\n");
-	fprintf(stdout, "             of the simplified in the output mesh. If this number is not set, \n");	
+	fprintf(stdout, "             in the simplified output mesh. If this number is not set, \n");
 	fprintf(stdout, "             The code will attempt to reduce the samples count as much as possible.\n");
-	
+
 	fprintf(stdout, "   -obt      Invokes the non-obtuse retriangulation algorithm on the input\n");
 	fprintf(stdout, "             mesh where we attempt to eliminate the obtuse triangles from \n");
 	fprintf(stdout, "             the input mesh.\n");
 
-	fprintf(stdout, "   -sam      The number followed represents the number of successful samples.\n");
+	fprintf(stdout, "   -sam      The number followed represents the number of successive successful\n");
+	fprintf(stdout, "             darts before termination.\n");
+	fprintf(stdout, "             During the sampling process, we can sample more than one successful\n");
+	fprintf(stdout, "             sample and pick the best one. The best one can have different objective.\n");
+	fprintf(stdout, "             In the current implementation, the `best' here is the one with maximum.\n");
+	fprintf(stdout, "             minimum apex angle across different algorihtms.\n");
 	fprintf(stdout, "             The default is 10 samples.\n");
 
 	fprintf(stdout, "   -ring     The number followed represents the number of rings (layers)\n");
 	fprintf(stdout, "             taken as background grid for sampling. The default is 3 rings.\n");
 
 	fprintf(stdout, "   -del      If set, the Delaunay property will be preserved.\n");
-	fprintf(stdout, "             The default is false.\n");	
+	fprintf(stdout, "             The default is false.\n");
 
 	fprintf(stdout, "   -minang   The number followed represents the minimum angle preserved.\n");
 	fprintf(stdout, "             The default is set to the minimum angle of the input mesh.\n");
 	fprintf(stdout, "   -maxang   The number followed represents the maximum angle preserved.\n");
 	fprintf(stdout, "             The default is set to the maximum angle of the input mesh.\n");
 
-//	fprintf(stdout, "   -minedge  The number followed represents the minimum edge preserved.\n");
-//	fprintf(stdout, "   -maxedge  The number followed represents the maximum edge preserved.\n");
+	//	fprintf(stdout, "   -minedge  The number followed represents the minimum edge preserved.\n");
+	//	fprintf(stdout, "   -maxedge  The number followed represents the maximum edge preserved.\n");
 
 	fprintf(stdout, "   -smooth   If set, the smoothness will be preserved.\n");
 	fprintf(stdout, "             The default is false.\n");
 	fprintf(stdout, "   -dih      The maximum dihedral angle to which the smoothness will be\n");
 	fprintf(stdout, "             preserved.\n");
 	fprintf(stdout, "   -v        Display various statistics throughout the execution.\n");
-	fprintf(stdout, "   -h        Display the use message.\n");
+	fprintf(stdout, "   -h        Display the use message, and quit.\n");
 	
 }
 
