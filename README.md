@@ -1,6 +1,6 @@
 # Mesh Improvement via Sampling:
 
-Implementation and results of "[A Constrained Resampling Strategy for Mesh Improvement](https://diglib.eg.org/handle/10.1111/cgf13256)", Proceedings of Eurographics Symposium on Geometry Processing (SGP) 2017.
+Implementation and results of "[A Constrained Resampling Strategy for Mesh Improvement](http://www.ece.ucdavis.edu/~ahdhn/files/MeshImpSGP17.pdf)", Proceedings of Eurographics Symposium on Geometry Processing (SGP) 2017.
 
 # Description:
 
