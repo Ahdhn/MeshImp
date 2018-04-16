@@ -330,61 +330,34 @@ int main(int argc, char**argv)
 {
 	//1) Parse Input command
 	struct Switches *mySwitches =  new Switches;	
-	char* filename = NULL;
-	ParseInput(argc, argv, mySwitches, filename);
-	
+	///char* filename = NULL;
+
+	char* filename = "input/bird_input.obj";
+	mySwitches->simp = true;
+	mySwitches->targetNumSamples = 0;
+	mySwitches->nonobt = false;
+	mySwitches->samplingBudget = 10;
+	mySwitches->numRing = 2;
+	mySwitches->isSmooth = true;
+	mySwitches->dih = 170;
+	mySwitches->isDelaunay = false;
+	mySwitches->minAngle = -1.0;
+	mySwitches->verbose = true;
+
+	//ParseInput(argc, argv, mySwitches, filename);	
 
 	//2) Read input mesh and build initial data structure 
-	int numVert(0), numTri(0);
+	int numVert(0), numTri(0), numSpheres(0);
 	double**Verts = NULL; 
 	int**Tris = NULL; 	
+	double**Spheres = NULL;
 	
 	objReader(filename, numVert, Verts, numTri, Tris);
 		
 	//3) Call the right application
 	MeshImp myImp(numVert, Verts, numTri, Tris);
 	
-	if (mySwitches->nonobt){
-		
-		//For acute >85
-		/*myImp.AcuteRemeshing_InterleaveOpt(mySwitches->samplingBudget,
-										   mySwitches->numRing,
-										   mySwitches->isSmooth,
-										   mySwitches->dih,
-										   mySwitches->isDelaunay,
-										   mySwitches->minAngle,
-										   mySwitches->maxAngle,
-										   mySwitches->verbose);*/
-
-		//For removal of tiny small angles <20
-		/*myImp.SmallAngleElimination_InterleaveOpt(mySwitches->minAngle,
-												  mySwitches->samplingBudget, 
-												  mySwitches->numRing,
-												  mySwitches->isSmooth,
-												  mySwitches->dih,
-												  mySwitches->isDelaunay,
-												  mySwitches->maxAngle,
-												  mySwitches->verbose);*/
-
-		//For typical non-obtuse remeshing
-		myImp.NonobtuseRemeshing(mySwitches->samplingBudget,
-			                     mySwitches->numRing, 
-								 mySwitches->isSmooth, 
-								 mySwitches->dih, 
-								 mySwitches->isDelaunay,
-								 mySwitches->minAngle,
-								 mySwitches->verbose);
-
-		//For improved non-obtuse remeshing
-		/*myImp.NonobtuseRemeshing_InterleaveOpt(mySwitches->samplingBudget, 
-			                                   mySwitches->numRing, 
-											   mySwitches->isSmooth, 
-											   mySwitches->dih, 
-											   mySwitches->isDelaunay,
-											   mySwitches->minAngle,
-											   mySwitches->verbose);*/
-	}
-	else if (mySwitches->simp){
+	if (mySwitches->simp){
 		myImp.Simp(mySwitches->targetNumSamples,
 				   mySwitches->samplingBudget,
 				   mySwitches->numRing,
@@ -393,7 +366,7 @@ int main(int argc, char**argv)
 				   mySwitches->isDelaunay,
 				   mySwitches->minAngle,
 				   mySwitches->maxAngle,
-				   mySwitches->verbose);
+				   mySwitches->verbose);	
 	}
 
 	return 0;
