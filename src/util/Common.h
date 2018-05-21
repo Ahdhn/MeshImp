@@ -46,7 +46,8 @@
 
 #include <math.h>
 #include <assert.h>
-
+#include <array>
+#include <vector>
 struct vert{
 	double x[3];//x,y,z
 	int connect[MAX_CONNECT];
@@ -66,9 +67,10 @@ struct plane
 	double x[4]; //a, b,c and d in the scalar equation of a plane
 
 };
-struct tri{
-	int id[3];
-	int neighbour[3];
+struct Tri {
+	std::vector<std::array<int,3>> ids;//triangles three vertices id
+	std::vector<std::array<int, 3>> neighbour; //num_tri X 3
+	std::vector<std::array<double, 3>> coord;//vertices coordinates  X 3
 };
 
 struct stats
@@ -720,5 +722,334 @@ inline double PointTriangleDistance(double xp1, double yp1, double zp1,// triang
 
 }
 
+template<typename T>
+bool LinePlaneIntersect(T pp_x, T pp_y, T pp_z, T pv_x, T pv_y, T pv_z,
+	                    T ip1_x, T ip1_y, T ip1_z, T ip2_x, T ip2_y, T ip2_z,
+	                    T&point_x, T&point_y, T&point_z){
+	//plane line intersection. plane define by normal vector (pv_x,pv_y,pv_z) and point on it(pp_x,pp_y,pp_z)
+	// and line between point ip1 and ip2... return point (point_x,point_y,point_z)
 
+	double ux, uy, uz; // line's vector
+
+	ux = ip2_x - ip1_x;
+	uy = ip2_y - ip1_y;
+	uz = ip2_z - ip1_z;
+
+	double dot = Dot(ux, uy, uz, pv_x, pv_y, pv_z);
+
+	if (abs(dot) <= 0.0){
+		return false;
+	}
+
+	double s;
+
+	s = (Dot(pv_x, pv_y, pv_z, pp_x - ip1_x, pp_y - ip1_y, pp_z - ip1_z)) / (dot);
+
+
+	if (s<-1.0*10E-12 || s>1.0 + 10E-12){
+		return false;
+	}
+	point_x = ip1_x + s*ux;
+	point_y = ip1_y + s*uy;
+	point_z = ip1_z + s*uz;
+	return true;
+
+}
+
+static bool GetInsct2Planes(double&point_x, double&point_y, double&point_z, double&vector_x, double&vector_y, double&vector_z, double** two_planes)
+{
+	//two_planes is an ainput pointer where first columne stores the vector normal to plane1 and a point on planes 1 
+	// and second columne stores same stuff for plane 2 
+
+	// double x_ip(_x_samples[_ip]), y_ip(_y_samples[_ip]), z_ip(_z_samples[_ip]), 
+	//	x_ip1(_x_samples[_ip1]), y_ip1(_y_samples[_ip1]), z_ip1(_z_samples[_ip1]), 
+	//	x_ip2(_x_samples[_ip2]), y_ip2(_y_samples[_ip2]), z_ip2(_z_samples[_ip2]); // all points
+
+	double x_ip1, y_ip1, z_ip1, x_ip2, y_ip2, z_ip2, ip_ip1_x, ip_ip1_y, ip_ip1_z, ip_ip2_x, ip_ip2_y, ip_ip2_z;
+
+	//double ip_ip1_x(x_ip1-x_ip), ip_ip1_y(y_ip1-y_ip), ip_ip1_z(z_ip1-z_ip); // vector _ip1 -> _ip 
+	//double ip_ip2_x(x_ip2-x_ip), ip_ip2_y(y_ip2-y_ip), ip_ip2_z(z_ip2-z_ip); // vector _ip2 -> _ip
+
+	ip_ip1_x = two_planes[0][0]; ip_ip1_y = two_planes[0][1]; ip_ip1_z = two_planes[0][2];
+	ip_ip2_x = two_planes[1][0]; ip_ip2_y = two_planes[1][1]; ip_ip2_z = two_planes[1][2];
+
+	x_ip1 = two_planes[0][3]; y_ip1 = two_planes[0][4]; z_ip1 = two_planes[0][5];
+	x_ip2 = two_planes[1][3]; y_ip2 = two_planes[1][4]; z_ip2 = two_planes[1][5];
+
+	double n1_cros_n2_x, n1_cros_n2_y, n1_cros_n2_z;
+	Cross(ip_ip1_x, ip_ip1_y, ip_ip1_z, ip_ip2_x, ip_ip2_y, ip_ip2_z, n1_cros_n2_x, n1_cros_n2_y, n1_cros_n2_z);
+	NormalizeVector(n1_cros_n2_x, n1_cros_n2_y, n1_cros_n2_z);
+
+	if (abs(n1_cros_n2_x*n1_cros_n2_x + n1_cros_n2_y*n1_cros_n2_y + n1_cros_n2_z*n1_cros_n2_z) < _tol_sq){
+		//parallel/concident planes
+		return false;
+		//std::cout << "Error (1) at GetInsct2Planes()..!!" << std::endl;		
+	}
+
+	double n1n1 = Dot(ip_ip1_x, ip_ip1_y, ip_ip1_z, ip_ip1_x, ip_ip1_y, ip_ip1_z); //_ip_ip1 (dot) _ip_ip1
+	double n2n2 = Dot(ip_ip2_x, ip_ip2_y, ip_ip2_z, ip_ip2_x, ip_ip2_y, ip_ip2_z); //_ip_ip2 (dot) _ip_ip2
+	double n1n2 = Dot(ip_ip1_x, ip_ip1_y, ip_ip1_z, ip_ip2_x, ip_ip2_y, ip_ip2_z); //_ip_ip1 (dot) _ip_ip2
+
+	double determinant = n1n1*n2n2 - n1n2*n1n2;
+
+	//double d1=Dot(ip_ip1_x, ip_ip1_y,ip_ip1_z, _x_sphere,_y_sphere,_z_sphere); // change 
+	//double d2=Dot(ip_ip2_x, ip_ip2_y,ip_ip2_z, _x_sphere,_y_sphere,_z_sphere); //change 
+
+	double d1 = Dot(ip_ip1_x, ip_ip1_y, ip_ip1_z, x_ip1, y_ip1, z_ip1);
+	double d2 = Dot(ip_ip2_x, ip_ip2_y, ip_ip2_z, x_ip2, y_ip2, z_ip2);
+
+
+	double c1 = (d1*n2n2 - d2*n1n2) / determinant;
+	double c2 = (d2*n1n1 - d1*n1n2) / determinant;
+
+	point_x = c1*ip_ip1_x + c2*ip_ip2_x;
+	point_y = c1*ip_ip1_y + c2*ip_ip2_y;
+	point_z = c1*ip_ip1_z + c2*ip_ip2_z;
+
+	vector_x = n1_cros_n2_x;
+	vector_y = n1_cros_n2_y;
+	vector_z = n1_cros_n2_z;
+
+	double nn = sqrt(vector_x*vector_x + vector_y*vector_y + vector_z*vector_z);
+	vector_x /= nn; vector_y /= nn; vector_z /= nn;
+
+
+	if (false){
+		//DrawPlane(ip_ip1_x, ip_ip1_y, ip_ip1_z, x_ip1, y_ip1, z_ip1);
+		//DrawPlane(ip_ip2_x, ip_ip2_y, ip_ip2_z, x_ip2, y_ip2, z_ip2);
+	}
+
+	return true;
+	/*double checkx, checky, checkz;
+	checkx=(_x_sphere-point_x)/vector_x;
+	checky=(_y_sphere-point_y)/vector_y;
+	checkz=(_z_sphere-point_z)/vector_z;
+
+	/*if(abs(checkx-checky)>10E-6 || abs(checky-checkz)>10E-6 || abs(checkz-checkx)>10E-6){ //^^debug
+	cout<<"Error(2) at GetInsct2Planes()..!! " <<endl;
+	system("pause");
+	}*/
+
+
+}
+static bool GetInsct2Planes(double&point_x, double&point_y, double&point_z, double&vector_x, double&vector_y, double&vector_z, double*C1, double*C2)
+{
+	//combine the two planes C1 and C2 in a double** array and call GetInsct2Planes
+	double **two_planes = new double*[2];
+	two_planes[0] = new double[6];
+	two_planes[1] = new double[6];
+
+	two_planes[0][3] = C1[0];//norm to plane 0
+	two_planes[0][4] = C1[1];
+	two_planes[0][5] = C1[2];
+	two_planes[0][0] = C1[3];//point on plane 0
+	two_planes[0][1] = C1[4];
+	two_planes[0][2] = C1[5];
+
+
+	two_planes[1][3] = C2[0];//norm to plane 1
+	two_planes[1][4] = C2[1];
+	two_planes[1][5] = C2[2];
+	two_planes[1][0] = C2[3];//point on plane 1
+	two_planes[1][1] = C2[4];
+	two_planes[1][2] = C2[5];
+
+	bool isInsect = GetInsct2Planes(point_x, point_y, point_z, vector_x, vector_y, vector_z, two_planes);
+
+	delete two_planes[0];
+	delete two_planes[1];
+	delete two_planes;
+
+	return isInsect;
+}
+inline bool SolveQuadEqu(double a, double b, double c, double&u1, double&u2)
+{
+	double delta = b*b - 4.0*a*c;
+	if (delta<0.0){
+		return false;
+	}
+
+
+	u1 = (-1.0*b + sqrt(delta)) / (2.0*a);
+	u2 = (-1.0*b - sqrt(delta)) / (2.0*a);
+	return true;
+
+}
+
+template<typename T>
+inline void BarycentricLite(T x1, T y1, T z1, T x2, T y2, T z2, T x3, T y3, T z3, T x_p, T y_p, T z_p, T&alfa, T& beta, T& gamma) {
+
+	double xx(0), yy(0), zz(0);
+	
+	Cross(x3 - x1, x2 - x1, x1 - x_p, 
+	      y3 - y1, y2 - y1, y1 - y_p,
+		  xx,yy,zz);
+
+	Cross(y3 - y1, y2 - y1, y1 - y_p,
+		  z3 - z1, z2 - z1, z1 - z_p,
+		  xx, yy, zz);
+
+	Cross(z3 - z1, z2 - z1, z1 - z_p,
+		  x3 - x1, x2 - x1, x1 - x_p,
+		  xx, yy, zz);
+	
+	if (std::abs(zz) < 1 - _tol) {
+		std::cout << "Error (0) at geo::Barycentric(). Triangle is degenerate!!!" << std::endl;
+		system("pause");		
+		//return Vec3f(-1, 1, 1);
+	}
+	alfa = 1.0 - (xx + yy) / zz;
+	beta = yy / zz;
+	gamma = xx / zz;
+	
+}
+
+
+template<typename T>
+inline void Barycentric(T x1, T y1, T z1, T x2, T y2, T z2, T x3, T y3, T z3, T x_p, T y_p, T z_p, T&alfa, T& beta, T& gamma, int stack = 0)
+{
+
+	T u21x(x2 - x1), u21y(y2 - y1), v31x(x3 - x1), v31y(y3 - y1), wq1x(x_p - x1), wq1y(y_p - y1);
+	if (u21y == 0 || u21x == 0 || v31y - v31x == 0){
+		u21x = x1 - x2;
+		u21y = y1 - y2;
+		v31x = x3 - x2;
+		v31y = y3 - y2;
+		wq1x = x_p - x2;
+		wq1y = y_p - y2;
+	}
+	if (u21y == 0 || u21x == 0 || v31y - v31x == 0){
+		u21x = x2 - x3;
+		u21y = y2 - y3;
+		v31x = x1 - x3;
+		v31y = y1 - y3;
+		wq1x = x_p - x3;
+		wq1y = y_p - y3;
+	}
+	if (u21x == 0 || (v31y - v31x*(u21y / u21x)) == 0){
+		stack++;
+		if (stack > 4){
+			std::cout << "Error (0) at geo::Barycentric()... " << std::endl;
+			system("pause");
+		}
+		Barycentric(z1, x1, y1, z2, x2, y2, z3, x3, y3, x_p, y_p, z_p, alfa, beta, gamma, stack);
+		return;
+		
+	}
+	if (!(u21x == 0)){
+		beta = (wq1y - wq1x*(u21y / u21x)) / (v31y - v31x*(u21y / u21x));
+		alfa = (wq1x - beta*v31x) / u21x;
+	}
+	else
+	{
+		if (v31x == 0){
+			stack++;
+			if (stack > 4){
+				std::cout << "Error (0) at geo::Barycentric()... " << std::endl;
+				system("pause");
+			}
+			Barycentric(z1, x1, y1, z2, x2, y2, z3, x3, y3, x_p, y_p, z_p, alfa, beta, gamma, stack);
+			return;			
+		}
+		alfa = (wq1y - wq1x*(v31y / v31x)) / (u21y - v31y*(u21x / v31x));
+		beta = (wq1x - alfa*u21x) / v31x;
+	}
+	gamma = 1.0 - alfa - beta;
+}
+
+template<typename T>
+bool removeFromVector(T item, std::vector<T>&myVec)
+{
+	for (int i = 0; i < int(myVec.size()); i++){
+		if (myVec[i] == item){
+			myVec[i] = myVec.back();
+			myVec.pop_back();
+			return true;
+		}
+	}
+	return false;
+}
+
+inline bool SphereLineIntersection(double p1x, double p1y, double p1z, double p2x, double p2y, double p2z,
+	                               double cx, double cy, double cz, double r_2,
+	                               double&px1, double&py1, double&pz1,
+	                               double&px2, double&py2, double&pz2,
+	                               size_t&num_sect)
+{
+	//http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection
+	//line(p2-p1) sphere(c) intersection
+	//true if there is intersection and return (p) as the insect point 
+	//return false otherwise
+
+	double a, b, c, t1, t2;
+	//a-->t^2
+	//b-->t^1
+	//c-->t^0
+	a = (p2x - p1x)*(p2x - p1x) + (p2y - p1y)*(p2y - p1y) + (p2z - p1z)*(p2z - p1z);
+	b = 2.0*(p1x - cx)*(p2x - p1x) + 2.0*(p1y - cy)*(p2y - p1y) + 2.0*(p1z - cz)*(p2z - p1z);
+	c = (p1x - cx)*(p1x - cx) + (p1y - cy)*(p1y - cy) + (p1z - cz)*(p1z - cz) - r_2;
+
+	if (!SolveQuadEqu(a, b, c, t1, t2)){ return false; }
+
+
+	if (10E-8 <= t1 && t1 <= 1.0 - 10E-8 && 10E-8 <= t2 && t2 <= 1.0 - 10E-8){
+		px1 = p1x + t1*(p2x - p1x);
+		py1 = p1y + t1*(p2y - p1y);
+		pz1 = p1z + t1*(p2z - p1z);
+
+		px2 = p1x + t2*(p2x - p1x);
+		py2 = p1y + t2*(p2y - p1y);
+		pz2 = p1z + t2*(p2z - p1z);
+
+		num_sect = 2;
+		return true;
+	}
+
+	else if (10E-8 <= t1 && t1 <= 1.0 - 10E-8){
+		px1 = p1x + t1*(p2x - p1x);
+		py1 = p1y + t1*(p2y - p1y);
+		pz1 = p1z + t1*(p2z - p1z);
+
+		num_sect = 1;
+		return true;
+	}
+	else if (10E-8 <= t2 && t2 <= 1.0 - 10E-8){
+		px1 = p1x + t2*(p2x - p1x);
+		py1 = p1y + t2*(p2y - p1y);
+		pz1 = p1z + t2*(p2z - p1z);
+		num_sect = 1;
+		return true;
+	}
+	else{
+		return false;
+	}
+
+}
+template<typename T>
+inline void Rotate3D(T x, T y, T z, T theta, size_t axis, T&xx, T&yy, T&zz)
+{
+	T sn, cs;
+	sn = sin(theta*PI / 180.0);
+	cs = cos(theta*PI / 180.0);
+	if (axis == 0){
+		xx = x;
+		yy = y*cs - z*sn;
+		zz = y*sn + z*cs;
+
+	}
+	else if (axis == 1){
+		xx = x*cs + z*sn;
+		yy = y;
+		zz = -x*sn + z*cs;
+	}
+	else if (axis == 2){
+		xx = x*cs - y*sn;
+		yy = x*sn + y*cs;
+		zz = z;
+	}
+	else{
+		std::cout << "Error at Rotate3D(). Wrong axis entry." << std::endl;
+		system("pause");
+	}
+}
 #endif /*_COMMON_*/

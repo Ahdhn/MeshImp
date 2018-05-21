@@ -39,6 +39,23 @@ KdTree::~KdTree()
 
 }
 
+void KdTree::BuildTree(int numPoints, double**Verts, int dimension)
+{
+	
+	DIM = dimension;
+	myPoints = new kd_node_t[numPoints];
+	for (int i = 0; i < numPoints; i++){
+		myPoints[i].myID = i;
+		myPoints[i].x = new double[DIM];
+		for (int j = 0; j < DIM; j++){
+			myPoints[i].x[j] = Verts[i][j];
+		}
+	}
+	tmp = new double[DIM];
+	root = Construct(myPoints, numPoints, 0);
+
+}
+
 void KdTree::BuildTree(int numPoints, vert*Verts, int dimension)
 {
 	//Build the tree, copy data and update the root 
@@ -86,6 +103,23 @@ int KdTree::FindNearest(double*point)
 
 	return found->myID;
 
+}
+
+void KdTree::rangeQuery(double point_xx, double point_yy, double point_zz, double r_2, int*inside, int&numInside){
+	
+	double*point = new double[3];
+	point[0] = point_xx;
+	point[1] = point_yy;
+	point[2] = point_zz;
+	
+	rangeQuery(point, r_2, inside, numInside);
+	
+	delete[] point;
+}
+void KdTree::rangeQuery(double*point, double r_2, int*inside, int&numInside){
+	testNode.x = point;
+	
+	Range(root, &testNode, 0, r_2, inside, numInside);
 }
 
 struct kd_node_t* KdTree::FindMedian(struct kd_node_t*start, struct kd_node_t*end, int id)
@@ -159,4 +193,40 @@ double KdTree::Dist(struct kd_node_t *a, struct kd_node_t *b)
 		d += t * t;
 	}
 	return d;
+}
+
+void KdTree::Range(struct kd_node_t *root, struct kd_node_t *iPoint, int i, double r_2, int*inside, int&numInside){
+
+	if (!root){ return; }
+	
+	double dx = root->x[i] - iPoint->x[i];
+	double dx2 = dx*dx;
+		
+	if (r_2 > dx2){
+		double d = Dist(root, iPoint);
+		if (r_2 > d){
+			inside[numInside] = root->myID;
+			numInside++;
+		}	
+	}
+	
+	if (++i >= DIM){ i = 0; }
+
+	Range(dx > 0 ? root->left : root->right, iPoint, i, r_2, inside, numInside);
+	if (r_2 <= dx2){ return; }
+	Range(dx > 0 ? root->right : root->left, iPoint, i, r_2, inside, numInside);
+	/*if (r_2 > dx2){		
+		double d = Dist(root, iPoint);
+		if (d < r_2){
+			inside[numInside] = root->myID;
+			numInside++;
+		}
+		Range(root->left, iPoint, i, r_2, inside, numInside);
+		Range(root->right, iPoint, i, r_2, inside, numInside);
+	}
+	else {
+		//only one side 
+		Range(dx > 0 ? root->left : root->right, iPoint, i, r_2, inside, numInside);
+	}*/
+
 }

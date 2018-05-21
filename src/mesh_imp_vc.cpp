@@ -26,33 +26,13 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits>
 
 #include "util/OBJ.h"
+#include "util/CSV.h"
 #include "operator/execute.h"
+#include "util\Common.h"
 
-
-struct Switches
-{
-	//Input switches 
-	//simp:   -sim      
-	//nonobt: -nonobt  
-	//samplingBudget: -samples 
-	//numLayer: -ring 
-	//isDelaunay: -del 
-
-	//isSmooth: -smooth
-	//devFactor: -dih
-	
-	//minAngle: -minang 
-	//maxAngle: -maxang 
-
-	//minEdge: -minedge 
-	//maxEdge: -maxedge 
-
-	bool simp, nonobt, isSmooth, isDelaunay, verbose;
-	int  samplingBudget, numRing, targetNumSamples;
-	double dih, minAngle, maxAngle, minEdge, maxEdge;	
-};
 
 void PrintHelpMessage()
 {
@@ -111,263 +91,117 @@ void PrintHelpMessage()
 	
 }
 
-bool ParseInteger(int startingIndex, char*searchString, int&IntegerVal)
-{
-	//parse the integer from searchString starting from startingIndex
-	//return false if it is not integer 
-	//return true if it is integer and store the value in IntegerVal
+void ScaleSphereAndTriangles(int numSpheres, double**Spheres, int numVert, double**Verts, double&xBase, double&yBase, double&zBase, double&scaleFactor){
+	xBase = yBase = zBase = DBL_MAX;
+	scaleFactor = 1.0;
+	double xMax(-DBL_MAX), yMax(-DBL_MAX), zMax(-DBL_MAX);
+	for (int i = 0; i < numSpheres; i++){
+		xBase = std::min(xBase, Spheres[i][0]);
+		yBase = std::min(yBase, Spheres[i][1]);
+		zBase = std::min(zBase, Spheres[i][2]);
 
-	char numString[2048];
-
-	IntegerVal = 0;
-	size_t myStrLen = strlen(searchString);
-	int k = 0;
-
-	for (size_t i = startingIndex; i < myStrLen; i++){
-		if (((searchString[i] >= '0') && (searchString[i] <= '9'))){
-			numString[k] = searchString[i];
-			k++;
-			startingIndex++;
-		}
-		else{
-			return false;
-		}
+		xMax = std::max(xMax, Spheres[i][0]);
+		yMax = std::max(yMax, Spheres[i][1]);
+		zMax = std::max(zMax, Spheres[i][2]);
 	}
 
-	IntegerVal = strtoul(numString, (char**)NULL, 0);
+	for (int i = 0; i < numVert; i++){
+		xBase = std::min(xBase, Verts[i][0]);
+		yBase = std::min(yBase, Verts[i][1]);
+		zBase = std::min(zBase, Verts[i][2]);
 
-	return true;
+		xMax = std::max(xMax, Verts[i][0]);
+		yMax = std::max(yMax, Verts[i][1]);
+		zMax = std::max(zMax, Verts[i][2]);
+	}
+
+	scaleFactor = std::max(xMax - xBase, yMax - yBase);
+	scaleFactor = std::max(scaleFactor, zMax - zBase);
+
+	for (int i = 0; i < numSpheres; i++){
+		Spheres[i][0] -= xBase;
+		Spheres[i][1] -= yBase;
+		Spheres[i][2] -= zBase;
+
+		Spheres[i][0] /= scaleFactor;
+		Spheres[i][1] /= scaleFactor;
+		Spheres[i][2] /= scaleFactor;
+		Spheres[i][3] /= scaleFactor;
+	}
+
+	for (int i = 0; i < numVert; i++){
+		Verts[i][0] -= xBase;
+		Verts[i][1] -= yBase;
+		Verts[i][2] -= zBase;
+
+		Verts[i][0] /= scaleFactor;
+		Verts[i][1] /= scaleFactor;
+		Verts[i][2] /= scaleFactor;
+	}
 
 }
-bool ParseDouble(int startingIndex, char*searchString, double&DoubleVal)
-{
-	//parse the integer from searchString starting from startingIndex
-	//return false if it is not integer 
-	//return true if it is integer and store the value in IntegerVal
-	char numString[2048];
+void RotateSphereAndTriangles(int numSpheres, double**Spheres, int numVert, double**Verts, const double xAngle, const double  yAngle, const double zAngle){
 
-	DoubleVal = 0;
-	size_t myStrLen = strlen(searchString);
-	int k = 0;
+	double xx(0), yy(0), zz(0);
+	for (int i = 0; i < numSpheres; i++){
+		Rotate3D(Spheres[i][0], Spheres[i][1], Spheres[i][2], xAngle, 0, xx, yy, zz);
+		Spheres[i][0] = xx; Spheres[i][1] = yy; Spheres[i][2] = zz;
 
-	for (size_t i = startingIndex; i < myStrLen; i++){
-		if (((searchString[i] >= '0') && (searchString[i] <= '9')) || (i == startingIndex && searchString[i] == '.')){
-			numString[k] = searchString[i];
-			k++;
-			startingIndex++;
-		}
-		else {
-			return false;
-		}
+		Rotate3D(Spheres[i][0], Spheres[i][1], Spheres[i][2], yAngle, 1, xx, yy, zz);
+		Spheres[i][0] = xx; Spheres[i][1] = yy; Spheres[i][2] = zz;
+
+		Rotate3D(Spheres[i][0], Spheres[i][1], Spheres[i][2], zAngle, 2, xx, yy, zz);
+		Spheres[i][0] = xx; Spheres[i][1] = yy; Spheres[i][2] = zz;
+
 	}
 
-	DoubleVal = strtod(numString, (char**)NULL);
-		
-	return true;
-}
-void ParseInput(int argc, char**argv, struct Switches *mySwitches, char*&filename )
-{
-	mySwitches->dih = -170.0;
-	mySwitches->isDelaunay = false;
-	mySwitches->isSmooth = false;
-	mySwitches->minAngle = -1.0;
-	mySwitches->maxAngle = -1.0;
-	mySwitches->nonobt = false;
-	mySwitches->simp = false;
-	mySwitches->numRing = 3;
-	mySwitches->samplingBudget = 10;
-	mySwitches->verbose = false;
-	mySwitches->targetNumSamples = -1;
+	for (int i = 0; i < numVert; i++){
+		Rotate3D(Verts[i][0], Verts[i][1], Verts[i][2], xAngle, 0, xx, yy, zz);
+		Verts[i][0] = xx; Verts[i][1] = yy; Verts[i][2] = zz;
 
-	
-	//filename = NULL;
+		Rotate3D(Verts[i][0], Verts[i][1], Verts[i][2], yAngle, 1, xx, yy, zz);
+		Verts[i][0] = xx; Verts[i][1] = yy; Verts[i][2] = zz;
 
-	if (argc < 2){
-		fprintf(stderr, "\nERROR:Invalid input. No switches or input file are provided!!!\n");
-		PrintHelpMessage();
-		exit(1);
-	}
-
-	for (int i = 1; i < argc; i++){
-		//std::cout << argv[i] << std::endl;
-		if (argv[i][0] == '-'){
-
-			//Help
-			if (argv[i][1] == 'h' && argv[i][2] == '\0'){
-				PrintHelpMessage();		
-				exit(0);
-			}
-			
-			//Simplification
-			else if (argv[i][1] == 's' && argv[i][2] == 'i'&& argv[i][3] == 'm'&& argv[i][4] == '\0'){
-				mySwitches->simp = true;
-			}	
-
-			//Target number of samples
-			else if (argv[i][1] == 't' && argv[i][2] == 'a'&& argv[i][3] == 'r'){
-				if (!ParseInteger(4, argv[i], mySwitches->targetNumSamples)){
-					fprintf(stderr, "\nERROR:Invalid input. Target number of samples should be an integer!!!\n");
-					PrintHelpMessage();
-					exit(1);
-				}
-			}
-
-			//Non-obtuse
-			else if (argv[i][1] == 'o' && argv[i][2] == 'b'&& argv[i][3] == 't'&& argv[i][4] == '\0'){
-				mySwitches->nonobt = true;
-			}
-
-			//isDelaunay
-			else if (argv[i][1] == 'd' && argv[i][2] == 'e' && argv[i][3] == 'l'&& argv[i][4] == '\0'){
-				mySwitches->isDelaunay = true;
-			}
-
-			//smoothness 
-			else if (argv[i][1] == 's' && argv[i][2] == 'm' && argv[i][3] == 'o'&& argv[i][4] == 'o' &&
-				argv[i][5] == 't'&& argv[i][6] == 'h' && argv[i][7] == '\0'){
-				mySwitches->isSmooth = true;
-			}
-
-			//verbose
-			else if (argv[i][1] == 'v' && argv[i][2] == '\0'){
-				mySwitches->verbose = true;
-			}
-
-			//numRing 
-			else if (argv[i][1] == 'r' && argv[i][2] == 'i' && argv[i][3] == 'n' && argv[i][4] == 'g'){
-				if (!ParseInteger(5, argv[i], mySwitches->numRing)){
-					fprintf(stderr, "\nERROR:Invalid input. Number of rings should be an integer!!!\n");
-					PrintHelpMessage();
-					exit(1);
-				}
-			}
-
-			//number of samples
-			else if (argv[i][1] == 's' && argv[i][2] == 'a' && argv[i][3] == 'm'){
-				if (!ParseInteger(4, argv[i], mySwitches->samplingBudget)){
-					fprintf(stderr, "\nERROR:Invalid input. Number of samples should be an integer!!!\n");
-					PrintHelpMessage();
-					exit(1);
-				}
-			}
-
-			//dih angle 
-			else if (argv[i][1] == 'd'&&argv[i][2] == 'i'&&argv[i][3] == 'h'){
-				if (!ParseDouble(4, argv[i], mySwitches->dih)){
-					fprintf(stderr, "\nERROR:Invalid input. Dihedral angle should be double!!!\n");
-					PrintHelpMessage();
-					exit(1);
-				}
-			}
-			
-			//min angle 
-			else if (argv[i][1] == 'm'&&argv[i][2] == 'i'&&argv[i][3] == 'n' &&
-				argv[i][4] == 'a'&&argv[i][5] == 'n'&&argv[i][6] == 'g'){
-
-				if (strlen(argv[i]) == 7){
-					//the default
-					mySwitches->minAngle = -1.0;
-				}
-				else{
-					if (!ParseDouble(7, argv[i], mySwitches->minAngle)){
-						fprintf(stderr, "\nERROR:Invalid input. Minimum angle should be double!!!\n");
-						PrintHelpMessage();
-						exit(1);
-					}
-				}
-			}
-
-			//max angle 
-			else if (argv[i][1] == 'm'&&argv[i][2] == 'a'&&argv[i][3] == 'x' &&
-				argv[i][4] == 'a'&&argv[i][5] == 'n'&&argv[i][6] == 'g'){
-
-				if (strlen(argv[i]) == 7){
-					//the default
-					mySwitches->maxAngle = -1.0;
-				}
-				else{
-					if (!ParseDouble(7, argv[i], mySwitches->maxAngle)){
-						fprintf(stderr, "\nERROR:Invalid input. Maximum angle should be double!!!\n");
-						PrintHelpMessage();
-						exit(1);
-					}
-				}
-			}
-
-		} else {
-			//this should be the input file			
-			for (size_t j = 0; j < strlen(argv[i]); j++){
-				if (argv[i][j] == '.'){
-					if (!((argv[i][j + 1] == 'o' || argv[i][j + 1] == 'O') &&
-						  (argv[i][j + 2] == 'b' || argv[i][j + 2] == 'B') &&
-						  (argv[i][j + 3] == 'j' || argv[i][j + 3] == 'J'))){
-						fprintf(stderr, "\nERROR:Invalid input file!!!\n");
-						PrintHelpMessage();
-						exit(1);
-					}
-					break;
-				}
-			}			
-			filename = new char[5000];
-			filename = argv[i];
-		}
-	}
-
-	if (filename == NULL){
-		fprintf(stderr, "\nERROR:No input file provided!!!\n");
-		PrintHelpMessage();
-		exit(1);
-	}
-
-	if ((!mySwitches->nonobt && !mySwitches->simp) || (mySwitches->nonobt && mySwitches->simp)){
-		fprintf(stderr, "\nERROR:Invalid input!!!\n");
-		PrintHelpMessage();
-		exit(1);
+		Rotate3D(Verts[i][0], Verts[i][1], Verts[i][2], zAngle, 2, xx, yy, zz);
+		Verts[i][0] = xx; Verts[i][1] = yy; Verts[i][2] = zz;
 	}
 }
-
 int main(int argc, char**argv)
 {
-	//1) Parse Input command
-	struct Switches *mySwitches =  new Switches;	
+	
 	///char* filename = NULL;
+	//char* OBJfilename = "input/fertility_vc_surface.obj";
+	//char* CSVfilename = "input/fertility_surface_spheres.csv"; bool withTag = false;
 
-	char* filename = "input/bird_input.obj";
-	mySwitches->simp = true;
-	mySwitches->targetNumSamples = 0;
-	mySwitches->nonobt = false;
-	mySwitches->samplingBudget = 10;
-	mySwitches->numRing = 2;
-	mySwitches->isSmooth = true;
-	mySwitches->dih = 170;
-	mySwitches->isDelaunay = false;
-	mySwitches->minAngle = -1.0;
-	mySwitches->verbose = true;
+	char* OBJfilename = "input/cube_vc_surface.obj";
+	char* CSVfilename = "input/cube_surface_spheres_tagged.csv"; bool withTag = true;
+
+	//char* OBJfilename = "input/scorpion_vc_surface.obj";
+	//char* CSVfilename = "input/scorpion_surface_spheres_tagged.csv"; bool withTag = true;
+	
 
 	//ParseInput(argc, argv, mySwitches, filename);	
 
-	//2) Read input mesh and build initial data structure 
+	//2) Read input mesh and spheres and build initial data structure 
 	int numVert(0), numTri(0), numSpheres(0);
-	double**Verts = NULL; 
-	int**Tris = NULL; 	
-	double**Spheres = NULL;
+	double**Verts = nullptr; int**Tris = nullptr; double**Spheres = nullptr;
 	
-	objReader(filename, numVert, Verts, numTri, Tris);
+	cvsReader(CSVfilename, numSpheres, Spheres, withTag);
+	objReader(OBJfilename, numVert, Verts, numTri, Tris);
+	
+	//3)scaling 
+	double xBase(DBL_MAX), yBase(DBL_MAX), zBase(DBL_MAX), scaleFactor(1);
+	ScaleSphereAndTriangles(numSpheres, Spheres, numVert, Verts, xBase, yBase, zBase, scaleFactor);
+	double xAngle((double(rand()) / double(RAND_MAX))*180.0), yAngle((double(rand()) / double(RAND_MAX))*180.0), zAngle((double(rand()) / double(RAND_MAX))*180.0);
+	RotateSphereAndTriangles(numSpheres, Spheres, numVert, Verts,xAngle,yAngle,zAngle);
+
 		
-	//3) Call the right application
-	MeshImp myImp(numVert, Verts, numTri, Tris);
-	
-	if (mySwitches->simp){
-		myImp.Simp(mySwitches->targetNumSamples,
-				   mySwitches->samplingBudget,
-				   mySwitches->numRing,
-				   mySwitches->isSmooth,
-				   mySwitches->dih,
-				   mySwitches->isDelaunay,
-				   mySwitches->minAngle,
-				   mySwitches->maxAngle,
-				   mySwitches->verbose);	
-	}
+	//4) Call the right application
+	MeshImp myImp(numSpheres, Spheres, numVert, Verts, numTri, Tris);
+	myImp.VC(-1, 10, 5, 1, 1);
+
+
+		
 
 	return 0;
 }

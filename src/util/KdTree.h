@@ -43,9 +43,14 @@ public:
 
 	//Call this one time to build everything 
 	void BuildTree(int numPoints, vert*Verts, int dimension);
+	void BuildTree(int numPoints, double**Verts, int dimension);
 	
 	//Call this to get the nearest node
 	int FindNearest(double*point);
+
+	//find all points inside a sphere or radius (square) or r_2 around iPoint
+	void rangeQuery(double*point, double r_2, int*inside, int&numInside);
+	void rangeQuery(double point_xx, double point_yy, double point_zz, double r_2, int*inside, int&numInside);
 
 	~KdTree();
 	
@@ -56,7 +61,7 @@ private:
 	struct kd_node_t* Construct(struct kd_node_t *t, int len, int i);
 	void Nearest(struct kd_node_t *, struct kd_node_t *, int, struct kd_node_t**, double *);
 	double Dist(struct kd_node_t *, struct kd_node_t *);
-
+	void Range(struct kd_node_t *root, struct kd_node_t *iPoint, int i, double r_2, int*inside, int&numInside);
 
 	int DIM;
 	

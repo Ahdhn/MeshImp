@@ -33,66 +33,39 @@
 
 #include "../util/KdTree.h"
 #include "../util/Common.h"
-
+#include "../util/Sphere.h"
 
 #include <string>
 #include <vector>
-
+#include <Eigen/Dense>
 
 class MeshImp
 {
 public:
-	MeshImp(int numVert, double **Verts, int numTri, int**Tris);
-	~MeshImp();
-
-	
-	//** Non-obtuse Remeshing **//
-	void NonobtuseRemeshing(int samplingBudget, int numSurfaceLayer, bool isSmooth, double theta_d, bool isDelaunay, double minAngleAllow, bool verbose);
-	void NonobtuseRemeshing_InterleaveOpt(int samplingBudget, int numSurfaceLayer, bool isSmooth, double theta_d, bool isDelaunay, double minAngleAllow, bool verbose);
-	void AcuteRemeshing_InterleaveOpt(int samplingBudget, int numSurfaceLayer, bool isSmooth, double theta_d, bool isDelaunay, double minAngleAllow, double maxAngleAllow, bool verbose);
-	void SmallAngleElimination_InterleaveOpt(double targetMinAngle, int samplingBudget, int numSurfaceLayer, bool isSmooth, double theta_d, bool isDelaunay, double maxAngleAllow, bool verbose);
-
-
-	//** Sifting/Simplification **//
-	void Simp(int targetNumSamples, int samplingBudget, int numSurfaceLayer, bool isSmooth, double theta_d, bool isDelaunay, double minAngleAllow, double maxAngleAllow, bool verbose);
+	MeshImp(){};
+	~MeshImp(){};
+	MeshImp(int numSpheres, double **Spheres, int numVert, double**Verts, int numTri, int**Tris);	
 	
 
-	//** Postprocessing **//
-	void WriteStatToFile(std::string, int, vert*, bool obt);
-	void DisplayStat(int, vert*, bool obt);
-	void GetMeshOBJ(std::string filename, bool obtuse, std::string filename_obt);
+	//** Sifting **//
+	void VC(int targetNumSamples, int samplingBudget, int numSurfaceLayer, bool isSmooth, bool verbose);
 	
-
-	void PerturbVertices();
 
 private:
 	
-	//Classes 
-	KdTree surfaceKdTree; // the input surface kd tree 
-	BoundBox myBoundingBox;
 	
+	//Classes 	
+	Sphere mSphere;
+		
 	//Functions 
 	void ErrWarnMessage(size_t, std::string, size_t);
-	void FindNeighbourTriangles(int**&);
-	bool ObtuseHead(int, int&, int&);
-	bool AcuteHead(int ip, int&ip1, int&ip2, double measureAngle);
-	bool TooSmallHeadAngle(int ip, int&ip1, int&ip2, double measureAngle);
-	void InitialSortAroundVertex(int**);
-	void ScaleInputMesh();
-	void GetFanTriangle();
-
-	//Variables 
-	size_t MaxNumVert;
-	int numVert_org, numTri_org, numVert_imp;
-	vert *Vert_org;//the original surface 	
-	tri *Tri_org;//the original surface triangles 
-	vert *Vert_imp;//the improved/modified surface 
-	double scale_factor;
-	std::vector<int>indices; 
-		
+	void FindNeighbourTriangles();
 	
+	
+	//Variables 
+	Tri mTriangles;
 
-
+	
 };
 
 

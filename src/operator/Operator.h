@@ -35,100 +35,59 @@
 
 #include <stdlib.h>
 
-#include "../constraint/Constraints.h"
 #include "../util/Common.h"
 #include "../util/RNG.h"
-
+#include "../util/Sphere.h"
 
 class Operator
 {
 public:
-	//the constraints are set once by the executer  
-	struct AppConstraints{
-		bool isDelaunay;
-		bool isMinAngle; double MinAngle;
-		bool isMaxAngle; double MaxAngle;
-		bool isNonobtuse;
-		bool isSmooth; double dev;
-		bool isEdgeLen; double MinEdgeLength_sq;
-		                                     //need to look into this in case of function is passed
-		bool isMaximal;
-	} constraints;
-
-	Operator(vert*Vert_org);
+	
+	Operator();	
 	~Operator();
-
-	void TriValentRemoval(int&numVert, vert*Verts);
-
-	bool Relocation(int ip, int&numVert, vert*Verts, int closedtSurfaceID, int samplingBudget, int numSurfaceLayer);
-
-	bool Ejection(int* ip, int&numVert, vert*Verts, int closedtSurfaceID, int samplingBudget, int numSurfaceLayer, bool att);
-
-	bool Injection(int*ip, int&numVert, vert*Verts, int closedtSurfaceID, int samplingBudget, int numSurfaceLayer, bool inj);
-
-	bool AggressiveInjection(int*ip, int&numVert, vert*Verts, int closedtSurfaceID, int samplingBudget, int numSurfaceLayer, bool inj);
-
-
+				
+	bool EjectionSpheres(int*ip, Tri*Triangles, Sphere*Spheres, int samplingBudget, int numSurfaceLayer, bool isSmooth, bool verbose);
+	
 
 private:
-	Constraints myConstraints;  	
-	RndNum myRandNum;
+	/*****************************************/
+	int m_neighbor_tri[2000];
+	double* m_two_planes1 = new double [6];	
+	double* m_two_planes2 = new double[6];
+
+	std::vector<int> m_overlap;
+	std::vector<int> m_overlap_two_layers;
+
+	inline bool InsectPointBetweenTwoSamples(Sphere* Spheres, int p1, int p2, double&x_in1, double&y_in1, double&z_in1, double&x_in2, double&y_in2, double&z_in2, Tri* Triangles, size_t&sect_num, bool get_neighbors, const int _num_layers);
+	inline void GetNeighbors(Tri* Triangles, int tri, int num_layer);
+	inline void GetTriNeighbors(Tri*Triangles, int tri_num);
 	
-	int skipList[20];//the skip list stores the vertices that should be considered as if they are deleted 
-	int skipListNN[20];//the skip list stores the vertices that should be considered as if they are deleted 
-	                 //we use this when we are attracting/repelling vertices 
-	double newVertex[3];//coordinates of the new vertex (updated from Sampler)
-	int mynList[100];//sorted neighbour list (connected chain)
-	int mynListNN[100];//sorted neighbour list for being attracted vertex (unconnected chain)
-	double void_vertex[3];
-	int apex[4];//for each two consecutive vertices in *ip, find their (correct) shared vertex 
-	int EdgeToBreak[10];//max 3 edges (3*2 + 1)
-	double original_neighbout[100][3];//keeps a copy of the original void corners to be updated in case of failure in repeller or attractor 
-	int temp_arr[100];//used for various reasons when a temp array is needed 
+	double m_insect_constraints[1000][3];
+	int m_num_insect_constraints;
 
-	void AttractorRepeller(int* ip, int&numVert, vert*Verts, int closedtSurfaceID, int samplingBudget, int numSurfaceLayer, bool isAttractor);
-	void SetAttractorRepeller(vert*Verts);
-	void RevertAttractorRepeller(vert*Verts);
+	int m_seeds_constraints[1000];
 
-	void StartActivePool(int closedtSurfaceID, double*myVert);
-	void StartActivePool(int id, int numLayers);
 
-	void GetFanTriangles(int);
-	bool IsDuplicated(int ip1, int ip2, int ip3, int t2);
-	bool Sampler(vert*Verts, int*nList, int budget,
-		         int i_af, int i_rep, int i_bf,
-				 double(*Optimizer)(vert*Verts, int*nList, double*void_ver, double xx, double yy, double zz));
-
-	void RetrieveCoordinates(int lf, int* cell, double&x0, double&y0, double&z0, double&x1, double&y1, double&z1, double&x2, double&y2, double&z2);	
-	bool CheckNewVertex(vert*Verts, int*nList, double x_new, double  y_new, double  z_new, bool att);
-	bool CheckRefinement(vert*Verts, int*nList, double*tri);
-	void RandomPointInTri(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, double&x, double&y, double&z);
-	void Mover(int ip, vert*Verts);
-	void EdgeCollapse(int ip_low, int ip_high, int&numVert, vert*Verts);
-	void FaceCollapse(int ip_low, int ip_mid, int ip_high, int&numVert, vert*Verts);	
-	void Inserter(int&numVert, vert*Verts);
-	void RemoveVertex(int ip, int&numVert, vert*Verts);
-	bool InspectFeasibleRegion(int*nList, vert*Verts);
-
-	void ErrWarnMessage(size_t lineNum, std::string message, size_t mess_id);
-	void TriValent(int ip, vert*Verts, int*list, int skip1, int skip2);
-	void GetListSkipVertex(int ip, vert*Verts, int skip1, int skip2, int*list);
-	void GetEdgeSortedNeighbourList(int ip1, int ip2, vert*Verts, int*list);
-	void GetFaceSortedNeighbourList(int ip1, int ip2, int ip3, vert*Verts, int*list);
-	void CycleList(int ip, vert*Verts, int iq, int start_id, int end_id, int*list, bool includeLastEle);
-	void CycleList_SkipList(int ip, vert*Verts, int*SkipList, int start_id, int end_id, int*list);
-	
-
-	void DrawActivePool(int lf);
-	void DrawnList(vert*Verts);
-	
-	vert*Vert_org;//input surface 
-
-	//resampling grid
 	int num_active;
 	int**active_pool, **tmp_active_pool, **tri_pool;
 	double **_tar;
-	int next_layer[MAXPOOL];
+	double newVertex[3];//coordinates of the new vertex (updated from Sampler)
+	int newVertexTri;
+	void StartActivePool(Tri* Triangles);
+	bool Sampler(Sphere* Spheres, Tri*Triangles, double r_2new, int*ip);
+	void RetrieveCoordinates(Tri*Triangles, int lf, int* cell, double&x0, double&y0, double&z0, double&x1, double&y1, double&z1, double&x2, double&y2, double&z2);
+	void RandomPointInTri(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, double&x, double&y, double&z);
+	bool CheckNewVertex(Sphere* Spheres, double x_new, double  y_new, double  z_new, double r_2new, int*ip);
+	bool CheckRefinement(Sphere *Spheres,double r_2new, double*tri);
+	void ErrWarnMessage(size_t lineNum, std::string message, size_t mess_id);
+	void DrawActivePool(Tri*Triangles, int lf);
+	void DrawnList(Sphere* Spheres, std::vector<int>overlap);
+	void DrawnList(Sphere* Spheres, int*ip);
+	void Draw_m_neighbor_tri(Tri*Triangles);
+	void DrawTriangle(Tri*Triangles, int id);
+	inline bool isCoveredby(double xx, double yy, double zz, std::vector<int> overlap, Sphere* Spheres, int skip1, int skip2);
+	void DrawSeedList(Sphere *Spheres);
+	RndNum myRandNum;	
 };
 
 

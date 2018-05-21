@@ -23,8 +23,8 @@
 /************************************************************************************/
 /************************************************************************************/
 
-#ifndef _OBJREADER_
-#define _OBJREADER_
+#ifndef _CSVREADER_
+#define _CSVREADER_
 
 #include <stdlib.h>  
 #include <iostream>
@@ -34,76 +34,71 @@
 #include <cstring>
 
 /*
-	Read the vertices and triangles from a input obj file
+	Read shperes (X,Y,Z,R)
 	WARNING: read would return garbbage if the texture is included in the obj file
 	Two passes; first one to count number of verices and faces, second to read them
 */
-void objReader(char*filename, int&numVert, double**&Verts, int&numTri, int**&Tris)
+unsigned fileNumLines(char*filename)
+{
+	//https://stackoverflow.com/questions/3482064/counting-the-number-of-lines-in-a-text-file
+
+	std::ifstream myfile(filename);
+	// new lines will be skipped unless we stop it from happening:    
+	myfile.unsetf(std::ios_base::skipws);
+	// count the newlines with an algorithm specialized for counting:
+	unsigned line_count = std::count(
+		std::istream_iterator<char>(myfile),
+		std::istream_iterator<char>(),
+		'\n');
+	myfile.close();
+
+	return line_count;
+}
+void cvsReader(char*filename, int&numSpheres, double**&Spheres, bool isTagged = false)
 {
 	
 	fprintf(stdout, "\nReading %s\n", filename);
 
+	
 	std::ifstream myObjFile;
 	myObjFile.open(filename, std::ifstream::in);
 	std::string lineStr;
 
-	numVert = 0;
-	numTri = 0;
+	numSpheres = fileNumLines(filename);
+	fprintf(stdout, " NumSpheres = %d\n", numSpheres);
 
-	if (myObjFile.is_open()){
-		//pass one 
-		while (std::getline(myObjFile, lineStr)){
-			if (lineStr[0] == 'V' || lineStr[0] == 'v'){
-				numVert++;
-			}
-			else if (lineStr[0] == 'F' || lineStr[0] == 'f'){
-				numTri++;
-			}
-		}
-		Verts = new double*[numVert];
-		Tris = new int *[numTri];
-		myObjFile.close();
-		myObjFile.open(filename, std::ifstream::in);
-		//pass two 		
-		int vert_read(0), tri_read(0);
+	int num_current = 0;
+	if (myObjFile.is_open()){			
+		if (num_current == 0){ std::getline(myObjFile, lineStr); }
+		Spheres = new double*[numSpheres];
+		char myChar;
 
-		char myChar[10];
-		while (!myObjFile.eof()){
-			myObjFile >> myChar;
-			if (strcmp(myChar, "V") == 0 || strcmp(myChar, "v") == 0){
-				Verts[vert_read] = new double[3];
-				myObjFile >> Verts[vert_read][0] >> Verts[vert_read][1] >> Verts[vert_read][2];
-				vert_read++;
+		while (true){
+			
+			Spheres[num_current] = new double[5];
+			
+			myObjFile >> Spheres[num_current][0] >> myChar;
+			myObjFile >> Spheres[num_current][1] >> myChar;
+			myObjFile >> Spheres[num_current][2] >> myChar;
+			if (isTagged){
+				myObjFile >> Spheres[num_current][3] >> myChar;
+				myObjFile >> Spheres[num_current][4];
 			}
-			else if (strcmp(myChar, "F") == 0 || strcmp(myChar, "f") == 0){
-				Tris[tri_read] = new int[3];
-				myObjFile >> Tris[tri_read][0] >> Tris[tri_read][1] >> Tris[tri_read][2];
-				Tris[tri_read][0]--;
-				Tris[tri_read][1]--;
-				Tris[tri_read][2]--;
-				tri_read++;
-			}
-			else {
-				std::getline(myObjFile, lineStr);//read the rest of the line 
-			}
-
-
+			else{
+				myObjFile >> Spheres[num_current][3];
+				Spheres[num_current][4] = 0;
+			}			
+			num_current++;
+			if (num_current >= numSpheres){ break; }
 		}
 
-		if (vert_read != numVert || tri_read != numTri){
-			std::cerr << "Error at objReader::Error in read " << filename << std::endl;
-			exit(1);
-		}
 	}
 	else{
-		std::cerr << "Error at objReader::Can not open file " << filename << std::endl;
+		std::cerr << "Error at cvsReader::Can not open file " << filename << std::endl;
 		exit(1);
 	}
 
-	fprintf(stdout, " numVert = %d\n", numVert);
-	fprintf(stdout, " numTri = %d\n", numTri);
+	myObjFile.close();
 }
 
-
-
-#endif /*_OBJREADER_*/
+#endif /*_CSVREADER_*/
