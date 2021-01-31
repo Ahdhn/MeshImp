@@ -8,7 +8,7 @@ The code includes the implementation for curved surface meshes. This includes th
 1) _Non-obtuse retriangulation_:
    Eliminating obtuse triangles from input mesh while preserving the minimum angle bound, smoothness, and Delaunay property. 
 
-<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/gargoyle/input.png" height="435" width="435"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/NonObtuse/gargoyle/output.png" height="435" width="435">
+<img src="https://github.com/Ahdhn/MeshImp/blob/master/data/input/gargoyle/input.png" height="400" width="400"><img src="https://github.com/Ahdhn/MeshImp/blob/master/data/NonObtuse/gargoyle/output.png" height="400" width="400">
 
 ```
 	Input (Obtuse triangles in red)        					   Output
